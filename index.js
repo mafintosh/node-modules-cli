@@ -17,7 +17,12 @@ module.exports = function(query, opts) {
 		if (self.destroyed) return;
 		if (buffer.length) return self.push(buffer.shift());
 
-		request('http://node-modules.com/search.json?q='+encodeURIComponent(query)+'&marker='+marker+'&u='+username, {
+		request('http://node-modules.com/search.json', {
+			qs: {
+				q: query,
+				u: username,
+				marker: marker
+			},
 			json:true,
 			agent:opts.agent || agent
 		}, function(err, response) {
