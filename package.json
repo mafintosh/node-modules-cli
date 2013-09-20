@@ -2,7 +2,7 @@
   "name": "node-modules",
   "version": "0.1.2",
   "repository": "git://github.com/mafintosh/node-modules-cli.git",
-  "description": "commandline tool and node module for node-modules.com"
+  "description": "commandline tool and node module for node-modules.com",
   "dependencies": {
     "stream-wrapper": "~0.1.2",
     "request": "~2.27.0",
