@@ -8,7 +8,15 @@ var colors = require('colors');
 var tty = require('tty');
 var request = require('request');
 var proc = require('child_process')
-var spawn = require('child_process').spawn;
+var argv = require('optimist').alias('u', 'username').alias('r','reset').argv;
+
+var username = '';
+
+try {
+	username = fs.readFileSync(path.join(__dirname,'.username'), 'utf-8');
+} catch (err) {
+	// do nothing
+}
 
 var color = function(str, name) {
 	return colors[name](str);
@@ -51,14 +59,6 @@ var error = function(msg) {
 };
 
 commands.search = function(args) {
-	var username = '';
-
-	try {
-		username = fs.readFileSync(path.join(__dirname,'.username'), 'utf-8');
-	} catch (err) {
-		// do nothing
-	}
-
 	setRawMode(true);
 	var less = proc.spawn('less', ['-R'], { customFds : [ null, 1, 2 ] });
 
@@ -72,6 +72,23 @@ commands.search = function(args) {
 
 commands.personalize = function() {
 	var help = 'could not auto detect your github account\nuse --username to help';
+
+	if (argv.r) {
+		try {
+			fs.unlinkSync(path.join(__dirname, '.username'));
+		} catch (err) {
+			// do nothing
+		}
+		console.log('results are no longer personalized'.green);
+		return;
+	}
+
+	var onusername = function(login) {
+		fs.writeFileSync(path.join(__dirname, '.username'), login);
+		console.log('results are now personalized to '.green+login.bold);
+	};
+
+	if (argv.u) return onusername(argv.u);
 
 	proc.exec('git config --global --get user.email', function(err, email) {
 		email = (email || '').trim();
@@ -88,8 +105,7 @@ commands.personalize = function() {
 			if (!response.body || !response.body.items || !response.body.items[0]) return error(help);
 			var login = response.body.items[0].login;
 			if (!login) return error(help);
-			fs.writeFileSync(path.join(__dirname, '.username'), login);
-			console.log('results are now personalized to '.green+login.bold);
+			onusername(login);
 		});
 	});
 };
@@ -98,7 +114,7 @@ commands.help = function() {
 	process.stdout.write('\n');
 	process.stdout.write(fs.readFileSync(path.join(__dirname, 'logo')));
 	console.log(' Better search for Node.js modules.'.green+'\n');
-	console.log(' current version is '.grey+require('./package').version.bold+' and searches are personlized to '.grey+'mafintosh'.bold);
+	console.log(' current version is '.grey+require('./package').version.bold+(username && (' and searches are personlized to '.grey+username.bold)));
 	console.log('\n node-modules search [query]'.bold);
 	console.log('   # will search node-modules.com for query'.grey);
 	console.log('   # use --username or -u to personalize to a specific user'.grey);
@@ -109,4 +125,4 @@ commands.help = function() {
 	console.log('   # will print this help\n'.grey);
 };
 
-commands[process.argv[2] || 'help'](process.argv.slice(3));
+(commands[process.argv[2]] || commands.help)(process.argv.slice(3));
