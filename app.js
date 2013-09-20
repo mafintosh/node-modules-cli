@@ -67,7 +67,7 @@ commands.search = function(args) {
 		process.exit(0);
 	});
 
-	search(args.join(' '), {username:username}).pipe(format()).pipe(less.stdin);
+	search(args.join(' '), {username:argv.u || username}).pipe(format()).pipe(less.stdin);
 };
 
 commands.personalize = function() {
@@ -119,10 +119,10 @@ commands.help = function() {
 	console.log('   # will search node-modules.com for query'.grey);
 	console.log('   # use --username or -u to personalize to a specific user'.grey);
 	console.log('\n node-modules personalize'.bold);
-	console.log('   # will personalize your search result to using your github account'.grey);
+	console.log('   # will personalize your search results to using your github account'.grey);
 	console.log('   # use --reset or -r to reset to default'.grey);
 	console.log('\n node-modules help'.bold);
 	console.log('   # will print this help\n'.grey);
 };
 
-(commands[process.argv[2]] || commands.help)(process.argv.slice(3));
+(commands[argv._[0]] || commands.help)(argv._.slice(1));
