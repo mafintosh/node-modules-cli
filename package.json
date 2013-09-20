@@ -1,6 +1,6 @@
 {
   "name": "node-modules",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "repository": "git://github.com/mafintosh/node-modules-cli.git",
   "description": "commandline tool and node module for node-modules.com",
   "dependencies": {
