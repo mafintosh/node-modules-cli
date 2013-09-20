@@ -2,60 +2,35 @@
 
 var request = require('request');
 var stream = require('stream-wrapper');
-var colors = require('colors');
-var tty = require('tty');
-var spawn = require('child_process').spawn;
+var ForeverAgent = require('forever-agent');
 
-stream = stream.defaults({objectMode:true});
+var agent = new ForeverAgent();
 
-if (process.argv[2] !== 'search') {
-	console.log('usage: node-modules search [query]');
-	process.exit(1);
-}
+module.exports = function(query, opts) {
+	if (!opts) opts = {};
 
-var marker = '';
-var query = process.argv.slice(3).join(' ');
+	var marker = opts.marker || '';
+	var username = opts.username || '';
 
-var buffer = [];
-var search = stream.readable(function() {
-	if (buffer.length) return search.push(buffer.shift());
+	var buffer = [];
+	var self = stream.readable({objectMode:true, highWaterMark:1}, function() {
+		if (self.destroyed) return;
+		if (buffer.length) return self.push(buffer.shift());
 
-	request('http://node-modules.com/search.json?limit=60&q='+encodeURIComponent(query), {
-		json:true
-	}, function(err, response) {
-		response.body.forEach(function(data) {
-			buffer.push(data);
+		request('http://node-modules.com/search.json?q='+encodeURIComponent(query)+'&marker='+marker+'&u='+username, {
+			json:true,
+			agent:opts.agent || agent
+		}, function(err, response) {
+			if (err) return self.emit('error', err);
+			if (!response.body.length) return self.push(null);
+
+			response.body.forEach(function(data) {
+				buffer.push(data);
+				marker = data.marker;
+			});
+			self.push(buffer.shift());
 		});
-		buffer.push(null);
-		search.push(buffer.shift());
-	});
-});
-
-var setRawMode = function(mode) {
-	process.stdin.setRawMode ? process.stdin.setRawMode(mode) : tty.setRawMode(mode);
-};
-
-var inverse = function(str) {
-	return str.inverse;
-};
-
-var toAnsi = function(module) {
-	var desc = module.description.trim().split(/\s+/).reduce(function(desc, word) {
-		if (desc.length-(desc.lastIndexOf('\n')+1) + word.length > 80) return desc+'\n'+word;
-		return desc + ' '+word;
 	});
 
-	var by = 'by '+(module.related ? inverse(module.author) : module.author)+' and used by ';
-	if (module.relation.length) by += module.relation.map(inverse).join(' ')+' and ';
-	by += module.dependents+' module'+(module.dependents === 1 ? '' : 's');
-
-	return module.name.bold.cyan+'  '+('★'+module.stars).yellow.bold+'  '+module.url.grey+'  '+ '\n'+by.grey+'\n'+desc+'\n\n';
+	return self;
 };
-
-var format = stream.transform(function(data, enc, callback) {
-	callback(null, toAnsi(data));
-});
-
-setRawMode(true);
-
-search.pipe(format).pipe(spawn('less', ['-R'], { customFds : [ null, 1, 2 ] }).stdin);
