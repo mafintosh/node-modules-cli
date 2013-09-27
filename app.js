@@ -7,13 +7,15 @@ var fs = require('fs');
 var colors = require('colors');
 var tty = require('tty');
 var request = require('request');
-var proc = require('child_process')
+var proc = require('child_process');
+var osenv = require('osenv');
 var argv = require('optimist').alias('u', 'username').alias('r','reset').argv;
 
+var home = osenv.home();
 var username = '';
 
 try {
-	username = fs.readFileSync(path.join(__dirname,'.username'), 'utf-8');
+	username = fs.readFileSync(path.join(home,'.username'), 'utf-8');
 } catch (err) {
 	// do nothing
 }
