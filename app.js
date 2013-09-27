@@ -15,7 +15,7 @@ var home = osenv.home();
 var username = '';
 
 try {
-	username = fs.readFileSync(path.join(home,'.username'), 'utf-8');
+	username = fs.readFileSync(path.join(home,'.node-modules'), 'utf-8');
 } catch (err) {
 	// do nothing
 }
@@ -86,7 +86,7 @@ commands.personalize = function() {
 	}
 
 	var onusername = function(login) {
-		fs.writeFileSync(path.join(__dirname, '.username'), login);
+		fs.writeFileSync(path.join(home, '.node-modules'), login);
 		console.log('results are now personalized to '.green+login.bold);
 	};
 
