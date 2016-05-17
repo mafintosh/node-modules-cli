@@ -2,9 +2,6 @@
 
 var request = require('request');
 var stream = require('stream-wrapper');
-var ForeverAgent = require('forever-agent');
-
-var agent = new ForeverAgent();
 
 module.exports = function(query, opts) {
 	if (!opts) opts = {};
@@ -24,7 +21,6 @@ module.exports = function(query, opts) {
 				marker: marker
 			},
 			json:true,
-			agent:opts.agent || agent
 		}, function(err, response) {
 			if (err) return self.emit('error', err);
 			if (!response.body.length) return self.push(null);
