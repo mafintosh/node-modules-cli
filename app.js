@@ -62,7 +62,7 @@ var error = function(msg) {
 
 commands.search = function(args) {
 	setRawMode(true);
-	var less = proc.spawn('less', ['-R'], { customFds : [ null, 1, 2 ] });
+	var less = proc.spawn('less', ['-R'], { stdio : [ null, 1, 2 ] });
 
 	less.stdin.on('error', noop);  // ignore EPIPE
 	less.on('exit', function() {
