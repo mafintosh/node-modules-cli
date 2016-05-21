@@ -16,6 +16,10 @@ or star on github by running
 
 	node-modules personalize
 
+If your github account could not be auto detected, use `-u` to specify it, e.g.:
+
+	node-modules personalize -u mafintosh
+
 For more information run `node-modules help`
 
 ## Module
